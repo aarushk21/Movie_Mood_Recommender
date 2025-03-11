@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Mood Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #4f46e5;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .emoji-guide {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .emoji-guide h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .emoji-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .emoji-item {
+            background: var(--card-background);
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .emoji-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .emoji-item span {
+            font-size: 1.2rem;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .input-label {
+            position: absolute;
+            top: -0.5rem;
+            left: 1rem;
+            background: var(--card-background);
+            padding: 0 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--card-background);
+            color: var(--text-primary);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .movie-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .movie-card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+            cursor: pointer;
+        }
+
+        .movie-card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) !important;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+            animation: none;
+            opacity: 1;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .movie-card.expanded .movie-info {
+            padding: 2rem;
+        }
+
+        .movie-card.expanded .movie-overview {
+            -webkit-line-clamp: unset;
+            line-clamp: unset;
+        }
+
+        .movie-card.expanded .movie-poster {
+            height: 500px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .close-button {
+            display: none;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            z-index: 1001;
+        }
+
+        .movie-card.expanded .close-button {
+            display: block;
+        }
+
+        .additional-info {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-card.expanded .additional-info {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-item {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .movie-card.expanded:hover {
+            transform: translate(-50%, -50%) !important;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .movie-card:hover .movie-poster {
+            transform: scale(1.05);
+        }
+
+        .movie-info {
+            padding: 1.5rem;
+        }
+
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .movie-rating {
+            color: #eab308;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .movie-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .genre-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .movie-overview {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(99, 102, 241, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .input-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">🎬 Movie Mood Generator</h1>
+            <p class="subtitle">Tell us your mood with an emoji and some keywords, and we'll find the perfect movies for you!</p>
+        </header>
+
+        <div class="emoji-guide">
+            <h3>Choose your mood:</h3>
+            <div class="emoji-list">
+                <div class="emoji-item" onclick="setEmoji('😊')"><span>😊</span> Happy</div>
+                <div class="emoji-item" onclick="setEmoji('😢')"><span>😢</span> Sad</div>
+                <div class="emoji-item" onclick="setEmoji('😱')"><span>😱</span> Thrilled</div>
+                <div class="emoji-item" onclick="setEmoji('🚀')"><span>🚀</span> Adventure</div>
+                <div class="emoji-item" onclick="setEmoji('🦸')"><span>🦸</span> Heroic</div>
+                <div class="emoji-item" onclick="setEmoji('🔍')"><span>🔍</span> Mystery</div>
+                <div class="emoji-item" onclick="setEmoji('❤️')"><span>❤️</span> Romance</div>
+                <div class="emoji-item" onclick="setEmoji('🎭')"><span>🎭</span> Drama</div>
+                <div class="emoji-item" onclick="setEmoji('🌟')"><span>🌟</span> Fantasy</div>
+                <div class="emoji-item" onclick="setEmoji('🎬')"><span>🎬</span> Documentary</div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <span class="input-label">Your Mood</span>
+                <input type="text" id="emoji-input" placeholder="Choose an emoji" maxlength="2">
+            </div>
+            <div class="input-group">
+                <span class="input-label">Keywords</span>
+                <input type="text" id="keywords-input" placeholder="E.g., space, adventure, family">
+            </div>
+            <button onclick="getRecommendations()">
+                <span>Find Movies</span>
+                <span>🍿</span>
+            </button>
+        </div>
+
+        <div id="movie-results" class="movie-list"></div>
+    </div>
+
+    <script>
+        function setEmoji(emoji) {
+            document.getElementById('emoji-input').value = emoji;
+            // Add visual feedback
+            const emojiItems = document.querySelectorAll('.emoji-item');
+            emojiItems.forEach(item => {
+                if (item.textContent.includes(emoji)) {
+                    item.style.borderColor = 'var(--primary-color)';
+                    item.style.transform = 'translateY(-2px)';
+                } else {
+                    item.style.borderColor = 'transparent';
+                    item.style.transform = 'none';
+                }
+            });
+        }
+
+        async function getRecommendations() {
+            const emoji = document.getElementById('emoji-input').value;
+            const keywords = document.getElementById('keywords-input').value;
+            const resultsDiv = document.getElementById('movie-results');
+
+            if (!emoji) {
+                showError('Please select an emoji for your mood!');
+                return;
+            }
+
+            // Show loading state
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Finding perfect movies for your mood...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/get_recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ emoji, keywords })
+                });
+
+                const movies = await response.json();
+                displayMovies(movies);
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Oops! Something went wrong. Please try again.');
+            }
+        }
+
+        function showError(message) {
+            const resultsDiv = document.getElementById('movie-results');
+            resultsDiv.innerHTML = `
+                <div class="error-message">
+                    ⚠️ ${message}
+                </div>
+            `;
+        }
+
+        function displayMovies(movies) {
+            const resultsDiv = document.getElementById('movie-results');
+            resultsDiv.innerHTML = '';
+
+            // Remove any existing overlay
+            const existingOverlay = document.querySelector('.overlay');
+            if (existingOverlay) {
+                existingOverlay.remove();
+            }
+
+            if (movies.length === 0) {
+                showError('No movies found. Try different mood or keywords!');
+                return;
+            }
+
+            // Create overlay element
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            document.body.appendChild(overlay);
+
+            movies.forEach((movie, index) => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+                movieCard.style.animationDelay = `${index * 0.1}s`;
+
+                const posterPath = movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : 'https://via.placeholder.com/500x750?text=No+Poster';
+
+                const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : 'N/A';
+                const releaseYear = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+                const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+                movieCard.innerHTML = `
+                    <button class="close-button">×</button>
+                    <img src="${posterPath}" alt="${movie.title}" class="movie-poster">
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-meta">
+                            <span>${releaseYear}</span>
+                            <span>${runtime}</span>
+                            <span class="movie-rating">⭐ ${rating}</span>
+                        </div>
+                        <div class="movie-genres">
+                            ${movie.genres.map(genre => `<span class="genre-tag">${genre}</span>`).join('')}
+                        </div>
+                        <p class="movie-overview">${movie.overview}</p>
+                        <div class="additional-info">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">Release Date</div>
+                                    <div class="info-value">${movie.release_date || 'N/A'}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Runtime</div>
+                                    <div class="info-value">${runtime}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Rating</div>
+                                    <div class="info-value">⭐ ${rating}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Genres</div>
+                                    <div class="info-value">${movie.genres.join(', ') || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add click event to expand card
+                movieCard.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('close-button')) {
+                        this.classList.remove('expanded');
+                        overlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                        return;
+                    }
+                    
+                    // Remove expanded class from other cards
+                    document.querySelectorAll('.movie-card').forEach(card => {
+                        card.classList.remove('expanded');
+                    });
+                    
+                    this.classList.add('expanded');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                resultsDiv.appendChild(movieCard);
+            });
+
+            // Close expanded card when clicking overlay
+            overlay.addEventListener('click', function() {
+                document.querySelectorAll('.movie-card').forEach(card => {
+                    card.classList.remove('expanded');
+                });
+                this.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        }
+
+        // Add keyboard support for closing expanded card
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.movie-card').forEach(card => {
+                    card.classList.remove('expanded');
+                });
+                document.querySelector('.overlay').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Add keyboard support for emoji input
+        document.getElementById('emoji-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getRecommendations();
+            }
+        });
+
+        // Add keyboard support for keywords input
+        document.getElementById('keywords-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                getRecommendations();
+            }
+        });
+    </script>
+</body>
+</html>
